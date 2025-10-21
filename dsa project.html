@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Library Management System</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f6fa;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background: #0078d7;
+        color: white;
+        text-align: center;
+        padding: 15px 0;
+    }
+    .container {
+        width: 90%;
+        max-width: 800px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    nav {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    button {
+        background: #0078d7;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px;
+    }
+    button:hover {
+        background: #005fa3;
+    }
+    input {
+        padding: 8px;
+        width: 100%;
+        margin: 6px 0;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+    }
+    th {
+        background: #0078d7;
+        color: white;
+    }
+    .hidden { display: none; }
+    .msg {
+        background: #e8f5e9;
+        padding: 10px;
+        border-left: 5px solid #0078d7;
+        margin-bottom: 10px;
+    }
+    footer {
+        text-align: center;
+        color: #666;
+        margin-top: 30px;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>📚 Library Management System</h1>
+</header>
+
+<div class="container">
+    <nav>
+        <button onclick="showSection('add')">➕ Add Book</button>
+        <button onclick="showSection('view')">📖 View Books</button>
+        <button onclick="showSection('search')">🔍 Search Book</button>
+        <button onclick="showSection('count')">📚 Count Books</button>
+    </nav>
+
+    <div id="message" class="msg hidden"></div>
+
+    <!-- Add Book -->
+    <section id="add" class="hidden">
+        <h2>Add a New Book</h2>
+        <input type="number" id="bookId" placeholder="Book ID" required>
+        <input type="text" id="bookTitle" placeholder="Book Title" required>
+        <input type="text" id="bookAuthor" placeholder="Book Author" required>
+        <button onclick="addBook()">Add Book</button>
+    </section>
+
+    <!-- View Books -->
+    <section id="view" class="hidden">
+        <h2>All Books</h2>
+        <table id="bookTable">
+            <thead>
+                <tr><th>ID</th><th>Title</th><th>Author</th><th>Action</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p id="noBooks">No books available.</p>
+    </section>
+
+    <!-- Search Book -->
+    <section id="search" class="hidden">
+        <h2>Search Book by ID</h2>
+        <input type="number" id="searchId" placeholder="Enter Book ID">
+        <button onclick="searchBook()">Search</button>
+        <div id="searchResult"></div>
+    </section>
+
+    <!-- Count Books -->
+    <section id="count" class="hidden">
+        <h2>Total Books</h2>
+        <p id="bookCount">📚 Total number of books: 0</p>
+    </section>
+</div>
+
+<footer>Made by Utkarsh Kumar & Tanmay Brahmankar 💻 | Data Structures Mini Project</footer>
+
+<script>
+    // Book storage (acts like Linked List)
+    let books = [];
+
+    // Show/hide sections
+    function showSection(id) {
+        document.querySelectorAll("section").forEach(sec => sec.classList.add("hidden"));
+        document.getElementById(id).classList.remove("hidden");
+        document.getElementById("message").classList.add("hidden");
+
+        if (id === "view") displayBooks();
+        if (id === "count") updateCount();
+    }
+
+    // Add book
+    function addBook() {
+        const id = document.getElementById("bookId").value.trim();
+        const title = document.getElementById("bookTitle").value.trim();
+        const author = document.getElementById("bookAuthor").value.trim();
+
+        if (!id || !title || !author) {
+            showMessage("⚠ Please fill all fields.");
+            return;
+        }
+
+        if (books.some(b => b.id === id)) {
+            showMessage("❌ Book ID already exists!");
+            return;
+        }
+
+        books.push({ id, title, author });
+        document.getElementById("bookId").value = "";
+        document.getElementById("bookTitle").value = "";
+        document.getElementById("bookAuthor").value = "";
+        showMessage("✅ Book added successfully!");
+    }
+
+    // Display all books
+    function displayBooks() {
+        const tbody = document.querySelector("#bookTable tbody");
+        tbody.innerHTML = "";
+
+        if (books.length === 0) {
+            document.getElementById("noBooks").style.display = "block";
+            return;
+        } else {
+            document.getElementById("noBooks").style.display = "none";
+        }
+
+        books.forEach(b => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${b.id}</td>
+                <td>${b.title}</td>
+                <td>${b.author}</td>
+                <td><button onclick="deleteBook('${b.id}')">🗑 Delete</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Search book
+    function searchBook() {
+        const id = document.getElementById("searchId").value.trim();
+        const resultDiv = document.getElementById("searchResult");
+        const book = books.find(b => b.id === id);
+
+        if (book) {
+            resultDiv.innerHTML = `
+                <div class='msg'>
+                    <b>📖 Book Found!</b><br>
+                    ID: ${book.id}<br>
+                    Title: ${book.title}<br>
+                    Author: ${book.author}
+                </div>`;
+        } else {
+            resultDiv.innerHTML = "<p>❌ Book not found.</p>";
+        }
+    }
+
+    // Delete book
+    function deleteBook(id) {
+        books = books.filter(b => b.id !== id);
+        displayBooks();
+        showMessage("🗑 Book deleted successfully!");
+    }
+
+    // Count books
+    function updateCount() {
+        document.getElementById("bookCount").innerText =
+            "📚 Total number of books: " + books.length;
+    }
+
+    // Message
+    function showMessage(msg) {
+        const box = document.getElementById("message");
+        box.textContent = msg;
+        box.classList.remove("hidden");
+    }
+
+    // Default view
+    showSection("add");
+</script>
+</body>
+</html>
